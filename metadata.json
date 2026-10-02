@@ -1,0 +1,6 @@
+{
+  "name": "Ethno PhytoLab Digital Atlas",
+  "description": "Ethno PhytoLab Digital Atlas - Direktori & Atlas Interaktif Tanaman Obat Fakultas Kedokteran. Mengelola data Farmakope Herbal Indonesia, simplisia makroskopis, dan integrasi PubChem & SwissADME. Dikembangkan oleh dr.penggalih@unwahas.ac.id.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
