@@ -42,23 +42,78 @@ export const USER_PROFILES: Record<UserRole, UserProfile> = {
   },
 };
 
-// Registered Authentication Credentials
-export const AUTH_CREDENTIALS = [
+export interface AuthAccount {
+  username: string;
+  password: string;
+  roleId: UserRole;
+  nama: string;
+  departemen: string;
+}
+
+export const INITIAL_AUTH_CREDENTIALS: AuthAccount[] = [
   {
     username: 'superadm',
     password: 'Sup3r@dm',
-    roleId: 'SUPERADMIN' as UserRole,
+    roleId: 'SUPERADMIN',
+    nama: 'Super Administrator (dr. Penggalih)',
+    departemen: 'Fakultas Kedokteran UNWAHAS',
   },
   {
     username: 'dosen1',
     password: 'dosen123',
-    roleId: 'ADMIN_DOSEN_1' as UserRole,
+    roleId: 'ADMIN_DOSEN_1',
+    nama: 'Dr. dr. Hendra Prasetyo, Sp.FK',
+    departemen: 'Departemen Farmakologi & Terapi FK',
   },
   {
     username: 'dosen2',
     password: 'dosen223',
-    roleId: 'ADMIN_DOSEN_2' as UserRole,
+    roleId: 'ADMIN_DOSEN_2',
+    nama: 'Prof. Apt. Sri Rahayu, M.Si., Ph.D.',
+    departemen: 'Laboratorium Herbal Medik & FHI',
   },
+];
+
+export const INITIAL_MASTER_PARTS = [
+  'Rimpang',
+  'Daun',
+  'Kulit Batang',
+  'Buah',
+  'Herba',
+  'Bunga',
+  'Akar',
+  'Umbi Lapis',
+  'Biji',
+  'Batang',
+  'Kayu',
+  'Ekstrak Daun',
+  'Rambut (Tangkai Putik)',
+];
+
+export const INITIAL_MASTER_INDICATIONS = [
+  'Antiinflamasi',
+  'Antihipertensi',
+  'Antidiabetes',
+  'Antimikroba',
+  'Hepatoprotektor',
+  'Karminatif',
+  'Diuretik',
+  'Antioksidan',
+  'Analgesik',
+  'Nootropik',
+  'Antidiare',
+  'Antipiretik',
+  'Imunomodulator',
+  'Gastroprotektif',
+  'Antikolesterol (Dislipidemia)',
+];
+
+export const INITIAL_MASTER_MONOGRAPHS = [
+  'FHI Edisi II',
+  'Suplemen II FHI',
+  'FHI Edisi I',
+  'Formularium Obat Herbal Asli Indonesia (FOHAI)',
+  'Formularium Ramuan Obat Tradisional Indonesia (FROTI)',
 ];
 
 interface PlantContextType {
@@ -72,19 +127,43 @@ interface PlantContextType {
   addPlant: (newPlantData: Omit<Plant, 'id' | 'no' | 'terakhirDiperbarui' | 'dikurasiOleh'>) => void;
   updatePlant: (id: string, updates: Partial<Plant>) => void;
   deletePlant: (id: string) => void;
+  batchDelete: (ids: string[]) => void;
+  batchUpdateStatus: (ids: string[], status: 'Published' | 'Draft') => void;
+  importFromJson: (jsonData: Plant[]) => boolean;
   triggerPubChemSync: (id: string) => Promise<{ success: boolean; message: string }>;
   resetToDefaultData: () => void;
   exportToCsv: () => string;
   bookmarkedIds: string[];
   toggleBookmark: (id: string) => void;
   isSyncingId: string | null;
+
+  // Master Reference Data
+  masterParts: string[];
+  masterIndications: string[];
+  masterMonographs: string[];
+  addMasterPart: (part: string) => void;
+  deleteMasterPart: (part: string) => void;
+  addMasterIndication: (indication: string) => void;
+  deleteMasterIndication: (indication: string) => void;
+  addMasterMonograph: (monograph: string) => void;
+  deleteMasterMonograph: (monograph: string) => void;
+
+  // User Accounts Master
+  accounts: AuthAccount[];
+  addAccount: (account: AuthAccount) => void;
+  updateAccount: (username: string, updates: Partial<AuthAccount>) => void;
+  deleteAccount: (username: string) => void;
 }
 
 const PlantContext = createContext<PlantContextType | undefined>(undefined);
 
-const STORAGE_KEY_PLANTS = 'FK_MED_HERBAL_PLANTS_V2';
+const STORAGE_KEY_PLANTS = 'ETHNO_PHYTOLAB_PLANTS_V3';
 const STORAGE_KEY_USER = 'ETHNO_PHYTOLAB_ACTIVE_USER';
 const STORAGE_KEY_BOOKMARKS = 'ETHNO_PHYTOLAB_BOOKMARKS';
+const STORAGE_KEY_PARTS = 'ETHNO_PHYTOLAB_MASTER_PARTS';
+const STORAGE_KEY_IND = 'ETHNO_PHYTOLAB_MASTER_INDICATIONS';
+const STORAGE_KEY_MONO = 'ETHNO_PHYTOLAB_MASTER_MONOGRAPHS';
+const STORAGE_KEY_ACCOUNTS = 'ETHNO_PHYTOLAB_MASTER_ACCOUNTS';
 
 export const PlantProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [plants, setPlants] = useState<Plant[]>(() => {
@@ -119,6 +198,43 @@ export const PlantProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   });
 
+  // Master Data categories
+  const [masterParts, setMasterParts] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_PARTS);
+      return saved ? JSON.parse(saved) : INITIAL_MASTER_PARTS;
+    } catch {
+      return INITIAL_MASTER_PARTS;
+    }
+  });
+
+  const [masterIndications, setMasterIndications] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_IND);
+      return saved ? JSON.parse(saved) : INITIAL_MASTER_INDICATIONS;
+    } catch {
+      return INITIAL_MASTER_INDICATIONS;
+    }
+  });
+
+  const [masterMonographs, setMasterMonographs] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_MONO);
+      return saved ? JSON.parse(saved) : INITIAL_MASTER_MONOGRAPHS;
+    } catch {
+      return INITIAL_MASTER_MONOGRAPHS;
+    }
+  });
+
+  const [accounts, setAccounts] = useState<AuthAccount[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_ACCOUNTS);
+      return saved ? JSON.parse(saved) : INITIAL_AUTH_CREDENTIALS;
+    } catch {
+      return INITIAL_AUTH_CREDENTIALS;
+    }
+  });
+
   const [isSyncingId, setIsSyncingId] = useState<string | null>(null);
 
   // Sync to localStorage
@@ -138,15 +254,31 @@ export const PlantProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     localStorage.setItem(STORAGE_KEY_BOOKMARKS, JSON.stringify(bookmarkedIds));
   }, [bookmarkedIds]);
 
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY_PARTS, JSON.stringify(masterParts));
+  }, [masterParts]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY_IND, JSON.stringify(masterIndications));
+  }, [masterIndications]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY_MONO, JSON.stringify(masterMonographs));
+  }, [masterMonographs]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY_ACCOUNTS, JSON.stringify(accounts));
+  }, [accounts]);
+
   const userProfile = USER_PROFILES[activeUser];
   const isLoggedIn = userProfile.peran === 'SUPERADMIN' || userProfile.peran === 'ADMIN';
 
   const login = (username: string, password: string): { success: boolean; message: string } => {
-    const trimmedUser = username.trim();
+    const trimmedUser = username.trim().toLowerCase();
     const trimmedPass = password.trim();
 
-    const matched = AUTH_CREDENTIALS.find(
-      (c) => c.username.toLowerCase() === trimmedUser.toLowerCase() && c.password === trimmedPass
+    const matched = accounts.find(
+      (c) => c.username.toLowerCase() === trimmedUser && c.password === trimmedPass
     );
 
     if (matched) {
@@ -154,7 +286,7 @@ export const PlantProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const roleName = USER_PROFILES[matched.roleId].peran;
       return {
         success: true,
-        message: `Selamat datang! Berhasil masuk sebagai ${roleName} (${USER_PROFILES[matched.roleId].nama}).`,
+        message: `Selamat datang! Berhasil masuk sebagai ${roleName} (${matched.nama}).`,
       };
     }
 
@@ -206,6 +338,34 @@ export const PlantProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setBookmarkedIds(prev => prev.filter(bId => bId !== id));
   };
 
+  const batchDelete = (ids: string[]) => {
+    setPlants(prev => prev.filter(p => !ids.includes(p.id)));
+    setBookmarkedIds(prev => prev.filter(bId => !ids.includes(bId)));
+  };
+
+  const batchUpdateStatus = (ids: string[], status: 'Published' | 'Draft') => {
+    setPlants(prev =>
+      prev.map(p => {
+        if (ids.includes(p.id)) {
+          return {
+            ...p,
+            statusKurasi: status,
+            terakhirDiperbarui: new Date().toISOString().split('T')[0],
+          };
+        }
+        return p;
+      })
+    );
+  };
+
+  const importFromJson = (jsonData: Plant[]): boolean => {
+    if (Array.isArray(jsonData) && jsonData.length > 0) {
+      setPlants(jsonData);
+      return true;
+    }
+    return false;
+  };
+
   const triggerPubChemSync = async (id: string): Promise<{ success: boolean; message: string }> => {
     const target = plants.find(p => p.id === id);
     if (!target) return { success: false, message: 'Tanaman tidak ditemukan' };
@@ -244,6 +404,9 @@ export const PlantProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const resetToDefaultData = () => {
     const defaults = buildInitialPlants();
     setPlants(defaults);
+    setMasterParts(INITIAL_MASTER_PARTS);
+    setMasterIndications(INITIAL_MASTER_INDICATIONS);
+    setMasterMonographs(INITIAL_MASTER_MONOGRAPHS);
     localStorage.removeItem(STORAGE_KEY_PLANTS);
   };
 
@@ -287,6 +450,64 @@ export const PlantProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     );
   };
 
+  // Master Categories handlers
+  const addMasterPart = (part: string) => {
+    const trimmed = part.trim();
+    if (trimmed && !masterParts.includes(trimmed)) {
+      setMasterParts(prev => [...prev, trimmed]);
+    }
+  };
+
+  const deleteMasterPart = (part: string) => {
+    setMasterParts(prev => prev.filter(p => p !== part));
+  };
+
+  const addMasterIndication = (ind: string) => {
+    const trimmed = ind.trim();
+    if (trimmed && !masterIndications.includes(trimmed)) {
+      setMasterIndications(prev => [...prev, trimmed]);
+    }
+  };
+
+  const deleteMasterIndication = (ind: string) => {
+    setMasterIndications(prev => prev.filter(i => i !== ind));
+  };
+
+  const addMasterMonograph = (m: string) => {
+    const trimmed = m.trim();
+    if (trimmed && !masterMonographs.includes(trimmed)) {
+      setMasterMonographs(prev => [...prev, trimmed]);
+    }
+  };
+
+  const deleteMasterMonograph = (m: string) => {
+    setMasterMonographs(prev => prev.filter(item => item !== m));
+  };
+
+  // User Accounts Handlers
+  const addAccount = (newAcc: AuthAccount) => {
+    setAccounts(prev => {
+      const filtered = prev.filter(a => a.username.toLowerCase() !== newAcc.username.toLowerCase());
+      return [...filtered, newAcc];
+    });
+  };
+
+  const updateAccount = (username: string, updates: Partial<AuthAccount>) => {
+    setAccounts(prev =>
+      prev.map(a => {
+        if (a.username.toLowerCase() === username.toLowerCase()) {
+          return { ...a, ...updates };
+        }
+        return a;
+      })
+    );
+  };
+
+  const deleteAccount = (username: string) => {
+    if (username === 'superadm') return; // protect default superadmin
+    setAccounts(prev => prev.filter(a => a.username !== username));
+  };
+
   return (
     <PlantContext.Provider
       value={{
@@ -300,12 +521,30 @@ export const PlantProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         addPlant,
         updatePlant,
         deletePlant,
+        batchDelete,
+        batchUpdateStatus,
+        importFromJson,
         triggerPubChemSync,
         resetToDefaultData,
         exportToCsv,
         bookmarkedIds,
         toggleBookmark,
         isSyncingId,
+
+        masterParts,
+        masterIndications,
+        masterMonographs,
+        addMasterPart,
+        deleteMasterPart,
+        addMasterIndication,
+        deleteMasterIndication,
+        addMasterMonograph,
+        deleteMasterMonograph,
+
+        accounts,
+        addAccount,
+        updateAccount,
+        deleteAccount,
       }}
     >
       {children}

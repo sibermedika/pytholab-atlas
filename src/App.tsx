@@ -12,6 +12,7 @@ import { MacroscopicCompareModal } from './components/MacroscopicCompareModal';
 import { PracticumNotesDrawer } from './components/PracticumNotesDrawer';
 import { BatchPubChemModal } from './components/BatchPubChemModal';
 import { LoginModal } from './components/LoginModal';
+import { MasterDataModal } from './components/MasterDataModal';
 import { FlaskConical, BookOpen, Layers, ExternalLink, Mail, ShieldCheck } from 'lucide-react';
 
 function AtlasDirectoryMain() {
@@ -39,6 +40,8 @@ function AtlasDirectoryMain() {
   const [isPracticumDrawerOpen, setIsPracticumDrawerOpen] = useState(false);
   const [isBatchSyncModalOpen, setIsBatchSyncModalOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isMasterDataModalOpen, setIsMasterDataModalOpen] = useState(false);
+  const [masterDataInitialTab, setMasterDataInitialTab] = useState<'plants' | 'categories' | 'indications' | 'monographs' | 'users' | 'backup'>('plants');
 
   // Filtered & Sorted Plants
   const filteredPlants = useMemo(() => {
@@ -114,6 +117,10 @@ function AtlasDirectoryMain() {
         onOpenPracticumDrawer={() => setIsPracticumDrawerOpen(true)}
         onOpenBatchSyncModal={() => setIsBatchSyncModalOpen(true)}
         onOpenLoginModal={() => setIsLoginModalOpen(true)}
+        onOpenMasterDataModal={(tab) => {
+          setMasterDataInitialTab(tab || 'plants');
+          setIsMasterDataModalOpen(true);
+        }}
       />
 
       {/* Filter Bar */}
@@ -289,6 +296,14 @@ function AtlasDirectoryMain() {
       <LoginModal
         isOpen={isLoginModalOpen}
         onClose={() => setIsLoginModalOpen(false)}
+      />
+
+      {/* 7. Master Data Console (SuperAdmin & Admin) */}
+      <MasterDataModal
+        isOpen={isMasterDataModalOpen}
+        initialTab={masterDataInitialTab}
+        onClose={() => setIsMasterDataModalOpen(false)}
+        onOpenAddPlant={() => setIsAddModalOpen(true)}
       />
     </div>
   );

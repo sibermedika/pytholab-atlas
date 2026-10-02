@@ -14,7 +14,9 @@ import {
   ShieldCheck,
   Crown,
   Mail,
-  UserCheck
+  UserCheck,
+  Database,
+  Users
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -22,6 +24,7 @@ interface HeaderProps {
   onOpenPracticumDrawer: () => void;
   onOpenBatchSyncModal: () => void;
   onOpenLoginModal: () => void;
+  onOpenMasterDataModal: (tab?: 'plants' | 'categories' | 'indications' | 'monographs' | 'users' | 'backup') => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -29,6 +32,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenPracticumDrawer,
   onOpenBatchSyncModal,
   onOpenLoginModal,
+  onOpenMasterDataModal,
 }) => {
   const { 
     plants, 
@@ -136,11 +140,34 @@ export const Header: React.FC<HeaderProps> = ({
             <span className="hidden sm:inline">Ekspor CSV</span>
           </button>
 
+          {/* Pengelolaan Master Data Button (Eksklusif SuperAdmin) */}
+          {userProfile.peran === 'SUPERADMIN' && (
+            <>
+              <button
+                onClick={() => onOpenMasterDataModal('users')}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-stone-800 bg-stone-100 hover:bg-stone-200 border border-stone-300 rounded-lg transition-colors shadow-xs"
+                title="Langsung Buka Master Data Pengguna & Akun Dosen"
+              >
+                <Users className="w-3.5 h-3.5 text-stone-700" />
+                <span>Master Pengguna</span>
+              </button>
+
+              <button
+                onClick={() => onOpenMasterDataModal('plants')}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-purple-950 bg-purple-100 hover:bg-purple-200 border border-purple-300 rounded-lg transition-colors shadow-xs"
+                title="Konsol Lengkap Master Data (Eksklusif SuperAdmin)"
+              >
+                <Database className="w-3.5 h-3.5 text-purple-800" />
+                <span>Kelola Master Data</span>
+              </button>
+            </>
+          )}
+
           {/* Admin / SuperAdmin Add Plant Button */}
           {isLoggedIn && (
             <button
               onClick={onOpenAddModal}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-white bg-emerald-800 hover:bg-emerald-900 rounded-lg transition-colors shadow-xs"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-emerald-800 hover:bg-emerald-900 rounded-lg transition-colors shadow-xs"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Tambah Tanaman</span>
@@ -230,12 +257,22 @@ export const Header: React.FC<HeaderProps> = ({
 
         {isLoggedIn && (
           <div className="flex items-center gap-2">
+            {userProfile.peran === 'SUPERADMIN' && (
+              <button
+                onClick={() => onOpenMasterDataModal('plants')}
+                className="text-[11px] font-semibold text-purple-900 hover:text-purple-950 flex items-center gap-1 bg-purple-100 hover:bg-purple-200 px-2 py-0.5 rounded transition-colors"
+                title="Buka Konsol Master Data (SuperAdmin)"
+              >
+                <Database className="w-3 h-3 text-purple-700" />
+                <span>Menu Master Data</span>
+              </button>
+            )}
             <button
               onClick={onOpenBatchSyncModal}
               className="text-[11px] font-medium text-emerald-800 hover:text-emerald-950 flex items-center gap-1 bg-emerald-100/60 hover:bg-emerald-100 px-2 py-0.5 rounded transition-colors"
             >
               <Sparkles className="w-3 h-3 text-emerald-700" />
-              <span>Pemeriksa PubChem PUG-REST API</span>
+              <span>Pemeriksa PubChem PUG-REST</span>
             </button>
           </div>
         )}

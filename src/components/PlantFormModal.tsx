@@ -27,7 +27,7 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({
   initialPlant,
   onClose,
 }) => {
-  const { addPlant, updatePlant, userProfile } = usePlantContext();
+  const { addPlant, updatePlant, userProfile, masterParts, masterMonographs } = usePlantContext();
 
   const isEditing = !!initialPlant;
 
@@ -308,17 +308,12 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({
                   onChange={(e) => setBagianDigunakan(e.target.value)}
                   className="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg text-stone-900 focus:outline-hidden focus:border-emerald-700"
                 >
-                  <option value="Rimpang">Rimpang</option>
-                  <option value="Daun">Daun</option>
-                  <option value="Kulit Batang">Kulit Batang</option>
-                  <option value="Buah">Buah</option>
-                  <option value="Herba">Herba</option>
-                  <option value="Bunga">Bunga</option>
-                  <option value="Akar">Akar</option>
-                  <option value="Umbi Lapis">Umbi Lapis</option>
-                  <option value="Biji">Biji</option>
-                  <option value="Batang">Batang</option>
-                  <option value="Kayu">Kayu</option>
+                  {masterParts.map((part) => (
+                    <option key={part} value={part}>{part}</option>
+                  ))}
+                  {!masterParts.includes(bagianDigunakan) && (
+                    <option value={bagianDigunakan}>{bagianDigunakan}</option>
+                  )}
                 </select>
               </div>
 
@@ -331,10 +326,12 @@ export const PlantFormModal: React.FC<PlantFormModalProps> = ({
                   onChange={(e) => setSumberMonografi(e.target.value)}
                   className="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg text-stone-900 focus:outline-hidden focus:border-emerald-700"
                 >
-                  <option value="FHI Edisi II">FHI Edisi II</option>
-                  <option value="Suplemen II FHI">Suplemen II FHI</option>
-                  <option value="FHI Edisi I">FHI Edisi I</option>
-                  <option value="Formularium Obat Herbal Asli Indonesia (FOHAI)">FOHAI Kemenkes</option>
+                  {masterMonographs.map((mono) => (
+                    <option key={mono} value={mono}>{mono}</option>
+                  ))}
+                  {!masterMonographs.includes(sumberMonografi) && (
+                    <option value={sumberMonografi}>{sumberMonografi}</option>
+                  )}
                 </select>
               </div>
 

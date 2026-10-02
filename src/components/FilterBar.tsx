@@ -31,33 +31,6 @@ interface FilterBarProps {
   totalFiltered: number;
 }
 
-const COMMON_PARTS = [
-  'Semua',
-  'Rimpang',
-  'Daun',
-  'Kulit Batang',
-  'Buah',
-  'Herba',
-  'Bunga',
-  'Akar',
-  'Umbi Lapis',
-  'Biji',
-  'Kayu'
-];
-
-const CLINICAL_INDICATIONS = [
-  'Semua',
-  'Antiinflamasi',
-  'Antihipertensi',
-  'Antidiabetes',
-  'Antimikroba',
-  'Hepatoprotektor',
-  'Karminatif',
-  'Diuretik',
-  'Antioksidan',
-  'Analgesik'
-];
-
 export const FilterBar: React.FC<FilterBarProps> = ({
   filters,
   onFilterChange,
@@ -65,7 +38,10 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   onViewModeChange,
   totalFiltered,
 }) => {
-  const { userProfile, isLoggedIn, bookmarkedIds } = usePlantContext();
+  const { userProfile, isLoggedIn, bookmarkedIds, masterParts, masterIndications } = usePlantContext();
+
+  const activeParts = ['Semua', ...masterParts];
+  const activeIndications = ['Semua', ...masterIndications];
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     onFilterChange({ ...filters, searchQuery: e.target.value });
@@ -181,7 +157,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         </span>
 
         <div className="flex flex-wrap items-center gap-1">
-          {COMMON_PARTS.map((part) => (
+          {activeParts.map((part) => (
             <button
               key={part}
               onClick={() => onFilterChange({ ...filters, selectedPart: part })}
@@ -208,7 +184,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             onChange={(e) => onFilterChange({ ...filters, selectedIndication: e.target.value })}
             className="text-xs bg-stone-50 border border-stone-200 rounded-md px-2 py-1 text-stone-700 focus:outline-hidden"
           >
-            {CLINICAL_INDICATIONS.map((ind) => (
+            {activeIndications.map((ind) => (
               <option key={ind} value={ind}>{ind}</option>
             ))}
           </select>
